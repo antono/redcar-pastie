@@ -26,14 +26,20 @@ module Redcar
           end
         end
       end
-    end
+    end    
 
     class PasteSelection < EditTabCommand
       def execute        
         text    = doc.selection? ? doc.selected_text : doc.to_s
         resp    = paste_text(text)        
-        message = resp || "Can't paste :("        
-        Application::Dialog.message_box(message)
+        
+        # Copy url to clipboard or show message
+        if(storage['auto_copy_to_clipboard'] && resp)
+          Redcar.app.clipboard << resp
+        else
+          message = resp || "Can’t paste. Try again."
+          Application::Dialog.message_box(message)
+        end
       end
 
       private
@@ -41,6 +47,7 @@ module Redcar
         @storage ||= Plugin::Storage.new('pastie_plugin')
         @storage.set_default('login', '')
         @storage.set_default('token', '')
+        @storage.set_default('auto_copy_to_clipboard', 'true')
         @storage
       end
       
